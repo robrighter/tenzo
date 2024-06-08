@@ -1,0 +1,4 @@
+*.pdx
+*.pdx.zip
+.DS_Store
+.nova

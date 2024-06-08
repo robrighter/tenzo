@@ -1,0 +1,7 @@
+name=Lonely Tennis
+author=Rob Righter
+description=A very lonely game of Tennis.
+bundleID=com.robrighter.LonelyTennis
+version=1.0
+buildNumber=100
+imagePath=SystemAssets
