@@ -4,13 +4,16 @@ import 'CoreLibs/graphics'
 Block = {}
 Block.__index = Block
 
-function Block:new(x, y, number)
+function Block:new(row, col, number, width, height)
     local self = setmetatable({}, Block)
     self.number = number
-    self.width = 20 -- Width of the block
-    self.height = 20 -- Height of the block
-    self.x = x
-    self.y = y
+    self.width = width -- Width of the block
+    self.height = height -- Height of the block
+    self.row = row
+    self.col = col
+    self.x = 0
+    self.y = 0
+    self.highlighted = false
 
     -- Create the sprite
     self.sprite = playdate.graphics.sprite.new()
@@ -20,15 +23,28 @@ function Block:new(x, y, number)
     self.sprite:add()
     local that = self
     function self.sprite:draw(x, y, width, height)
-        playdate.graphics.drawRect(x, y, width, height) -- Draw a black rectangle
+        if that.highlighted then
+            playdate.graphics.fillRect(x, y, width-1, height-1)    
+            playdate.graphics.setImageDrawMode(playdate.graphics.kDrawModeFillWhite)
+        else
+            playdate.graphics.drawRect(x, y, width-1, height-1)
+        end
         playdate.graphics.drawText(tostring(that.number), x + 6, y + 2)
+        playdate.graphics.setImageDrawMode(playdate.graphics.kDrawModeFillBlack)
     end
 
     return self
 end
 
-function Block:draw()
+function Block:calculateSpriteCoordinates(gridStartX, gridStartY)
+    self.x = 2+gridStartX + ((self.col - 1) * self.width)
+    self.y = 2+gridStartY + ((self.row - 1) * self.height)
+end
+
+
+function Block:draw(offsetx, offsety)
     --self.printProperties()
+    self:calculateSpriteCoordinates(offsetx, offsety)
     if self.sprite then
         self.sprite:draw(self.x, self.y, self.width, self.height)
     end
@@ -38,9 +54,10 @@ function Block:printProperties()
     print({number = self.number, x = self.x, y = self.y})
 end
 
-function Block:moveTo(x, y)
-    self.x, self.y = x, y
-    self.sprite:moveTo(x, y)
+function Block:moveTo(row, col, offsetx, offsety)
+    self.row, self.col = row, col
+    self:calculateSpriteCoordinates(offsetx, offsety)
+    self.sprite:moveTo(self.x, self.y)
 end
 
 function Block:remove()
@@ -51,12 +68,14 @@ end
 Grid = {}
 Grid.__index = Grid
 
-function Grid:new(rows, cols, blockWidth, blockHeight)
+function Grid:new(rows, cols, blockWidth, blockHeight, offsetx, offsety)
     local self = setmetatable({}, Grid)
     self.rows = rows
     self.cols = cols
     self.blockWidth = blockWidth
     self.blockHeight = blockHeight
+    self.offsetx = offsetx
+    self.offsety = offsety
     self.grid = {}
 
     for row = 1, rows do
@@ -69,12 +88,25 @@ function Grid:new(rows, cols, blockWidth, blockHeight)
     return self
 end
 
-function Grid:addBlock(row, col, number)
-    local x = (col - 1) * self.blockWidth + self.blockWidth / 2 + 1 -- Adjust for 1 px padding
-    local y = (row - 1) * self.blockHeight + self.blockHeight / 2 + 1
 
-    local block = Block:new(x, y, number)
+
+function Grid:addBlock(row, col, number)
+    local block = Block:new(row, col, number, self.blockWidth, self.blockHeight)
     self.grid[row][col] = block
+end
+
+function Grid:highlight(row,col)
+    local block = self.grid[row][col]
+    if block then
+        block.highlighted = true
+    end
+end
+
+function Grid:unhighlight(row,col)
+    local block = self.grid[row][col]
+    if block then
+        block.highlighted = false
+    end
 end
 
 function Grid:moveBlocksDown()
@@ -104,11 +136,15 @@ function Grid:removeBlock(row, col)
 end
 
 function Grid:draw()
+    --draw a rectangle around the grid
+    playdate.graphics.drawRect(self.offsetx, self.offsety, 3+(self.cols * self.blockWidth), 3+(self.rows * self.blockHeight))
+
+    --draw the blocks
     for row = 1, self.rows do
         for col = 1, self.cols do
             local block = self.grid[row][col]
             if block then
-                block:draw() -- Drawing each block
+                block:draw(self.offsetx, self.offsety)
             end
         end
     end
@@ -119,9 +155,7 @@ function Grid:moveBlock(fromRow, fromCol, toRow, toCol)
     if block and self.grid[toRow][toCol] == nil then
         self.grid[fromRow][fromCol] = nil
         self.grid[toRow][toCol] = block
-        local x = (toCol - 1) * self.blockWidth + self.blockWidth / 2 + 1
-        local y = (toRow - 1) * self.blockHeight + self.blockHeight / 2 + 1
-        block:moveTo(x, y)
+        block:moveTo(toRow, toCol, self.offsetx, self.offsety)
     end
 end
 

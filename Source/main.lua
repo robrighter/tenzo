@@ -20,17 +20,24 @@ local scoreBarHeight = 20
 local blocks = import("blocks")
 
 
-local grid = blocks.Grid:new(20, 10, 32, 32) -- Initialize grid with 20 rows and 10 columns, blocks are 32x32 pixels
+local grid = blocks.Grid:new(10, 10, 21, 21,10,10) -- Initialize grid with 20 rows and 10 columns, blocks are 32x32 pixels
 
 -- Add some initial blocks to the grid
-grid:addBlock(1, 5, 1)
-grid:addBlock(1, 6, 2)
-grid:addBlock(2, 5, 3)
-local blocktest = Block:new(10, 10, 9)
+for row = 1, 10 do  -- Start from the second last row to the first
+    if true then
+        for col = 1, 10 do
+            grid:addBlock(row, col, row-1)
+            if col%2 == 0 then
+                grid:highlight(row,col)
+            end
+        end
+    end
+end
+
+
 
 function playdate.update()
     playdate.graphics.clear() -- Clears the screen, necessary to redraw the sprites
-    blocktest:draw()
-    --grid:moveBlocksDown() -- Move blocks downward if space is available
+    grid:moveBlocksDown() -- Move blocks downward if space is available
     grid:draw() -- Draw the entire grid
 end
