@@ -89,10 +89,13 @@ function Grid:new(rows, cols, blockWidth, blockHeight, offsetx, offsety)
 end
 
 
-
 function Grid:addBlock(row, col, number)
     local block = Block:new(row, col, number, self.blockWidth, self.blockHeight)
     self.grid[row][col] = block
+end
+
+function Grid:getBlockAt(row, col)
+    return self.grid[row][col]
 end
 
 function Grid:highlight(row,col)
@@ -156,6 +159,17 @@ function Grid:moveBlock(fromRow, fromCol, toRow, toCol)
         self.grid[fromRow][fromCol] = nil
         self.grid[toRow][toCol] = block
         block:moveTo(toRow, toCol, self.offsetx, self.offsety)
+    end
+end
+
+function Grid:swap(row1, col1, row2, col2)
+    local block1 = self.grid[row1][col1]
+    local block2 = self.grid[row2][col2]
+    if block1 and block2 then
+        self.grid[row1][col1] = block2
+        self.grid[row2][col2] = block1
+        block1:moveTo(row2, col2, self.offsetx, self.offsety)
+        block2:moveTo(row1, col1, self.offsetx, self.offsety)
     end
 end
 
