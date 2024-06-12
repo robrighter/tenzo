@@ -1,6 +1,8 @@
 
 
-import 'CoreLibs/graphics'
+import 'CoreLibs/graphics.lua'
+import 'CoreLibs/timer.lua'
+
 
 local screenWidth, screenHeight = playdate.display.getSize()
 
@@ -28,12 +30,52 @@ local grid = blocks.Grid:new(10, 10, 21, 21,10,10) -- Initialize grid with 20 ro
 for row = 1, 10 do  -- Start from the second last row to the first
     if true then
         for col = 1, 10 do
-            grid:addBlock(row, col, math.random(0,9))
+            if row < 8 then -- start with just 3 rows
+                grid:addBlock(row, col, -1 ) --blanks
+            else
+                grid:addBlock(row, col, math.random(0,9)) --game blocks
+            end
         end
     end
 end
+
 gridready = true
 
+function timerCallback()
+    print("In Timer callback")
+    if isTopRowAllBlanks() then
+        insertRowAtBottom()
+        playdate.timer.performAfterDelay(3000, timerCallback)
+    else
+        --handle game over
+        print("[TODO] Game Over")
+    end
+end
+
+print("Starting Timer")
+playdate.timer.performAfterDelay(3000, timerCallback)
+
+function isTopRowAllBlanks()
+    for col = 1, 10 do
+        if grid:getBlockAt(1, col).blank then
+            --all good
+        else
+            return false
+        end
+    end
+    return true
+end
+
+function insertRowAtBottom()
+    for row = 2, 10 do
+        for col = 1, 10 do
+            grid:moveBlockForce(row, col, row - 1, col)
+        end
+    end
+    for col = 1, 10 do
+        grid:addBlock(10, col, math.random(0,9))
+    end
+end
 
 function playdate.update()
     playdate.graphics.clear() -- Clears the screen, necessary to redraw the sprites
@@ -63,6 +105,6 @@ function playdate.update()
         grid:highlight(cursorRow,cursorCol)
         grid:highlight(cursorRow,cursorCol+1)
     end
-    
+    playdate.timer.updateTimers()
     grid:draw() -- Draw the entire grid
 end

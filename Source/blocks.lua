@@ -6,7 +6,13 @@ Block.__index = Block
 
 function Block:new(row, col, number, width, height)
     local self = setmetatable({}, Block)
-    self.number = number
+    if number < 0 then
+        self.blank=true
+        self.number = -1
+    else
+        self.blank=false
+        self.number = number
+    end
     self.width = width -- Width of the block
     self.height = height -- Height of the block
     self.row = row
@@ -29,7 +35,9 @@ function Block:new(row, col, number, width, height)
         else
             playdate.graphics.drawRect(x, y, width-1, height-1)
         end
-        playdate.graphics.drawText(tostring(that.number), x + 6, y + 2)
+        if not that.blank then
+            playdate.graphics.drawText(tostring(that.number), x + 6, y + 2)    
+        end
         playdate.graphics.setImageDrawMode(playdate.graphics.kDrawModeFillBlack)
     end
 
@@ -160,6 +168,12 @@ function Grid:moveBlock(fromRow, fromCol, toRow, toCol)
         self.grid[toRow][toCol] = block
         block:moveTo(toRow, toCol, self.offsetx, self.offsety)
     end
+end
+
+function Grid:moveBlockForce(fromRow, fromCol, toRow, toCol)
+    local block = self.grid[fromRow][fromCol]
+    self.grid[toRow][toCol] = block
+    block:moveTo(toRow, toCol, self.offsetx, self.offsety)
 end
 
 function Grid:swap(row1, col1, row2, col2)
