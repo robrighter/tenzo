@@ -22,6 +22,7 @@ local cursorRow, cursorCol = 1, 1
 -- Import the Block and Matrix classes
 local blocks = import("blocks")
 local gridready = false
+local newLineTimerDelay = 8000
 
 
 local grid = blocks.Grid:new(10, 10, 21, 21,10,10) -- Initialize grid with 20 rows and 10 columns, blocks are 32x32 pixels
@@ -45,7 +46,8 @@ function timerCallback()
     print("In Timer callback")
     if isTopRowAllBlanks() then
         insertRowAtBottom()
-        playdate.timer.performAfterDelay(3000, timerCallback)
+        cursorRow = cursorRow - 1
+        playdate.timer.performAfterDelay(newLineTimerDelay, timerCallback)
     else
         --handle game over
         print("[TODO] Game Over")
@@ -53,7 +55,7 @@ function timerCallback()
 end
 
 print("Starting Timer")
-playdate.timer.performAfterDelay(3000, timerCallback)
+playdate.timer.performAfterDelay(newLineTimerDelay, timerCallback)
 
 function isTopRowAllBlanks()
     for col = 1, 10 do
@@ -76,6 +78,60 @@ function insertRowAtBottom()
         grid:addBlock(10, col, math.random(0,9))
     end
 end
+
+function processSequences()
+    for row = 1, 10 do
+        local sequence = getLongestStraightSequenceOfNumbersInRow(row)
+        if #sequence >= 3 then
+            print("Found a sequence of " .. #sequence .. " blocks in row " .. row)
+            for _, block in ipairs(sequence) do
+                grid:highlight(block.row, block.col)
+            end
+            playdate.timer.performAfterDelay(700, function()
+                for _, block in ipairs(sequence) do
+                    grid:removeBlock(block.row, block.col)
+                end
+            end)
+            
+        end
+    end
+end
+
+function getLongestStraightSequenceOfNumbersInRow(row)
+    local sequence = {} -- to store the block objects in the sequence
+    local longestSequence = {} -- to store the longest sequence found so far
+    local currentNumber = nil -- to keep track of the current number in the sequence
+    local currentSequenceLength = 0 -- to keep track of the length of the current sequence
+    for col = 1, grid.cols do
+        local block = grid:getBlockAt(row, col)
+        
+        if block.blank then
+            -- If the block is blank, reset the current sequence
+            currentNumber = nil
+            currentSequenceLength = 0
+        elseif currentNumber == nil or block.number == (currentNumber+1) then
+            -- If the block has the incrment number as the current sequence or it's the first block in the sequence
+            currentNumber = block.number
+            currentSequenceLength = currentSequenceLength + 1
+            table.insert(sequence, block)
+            
+            if currentSequenceLength >= 3 and currentSequenceLength > #longestSequence then
+                -- If the current sequence is longer than the longest sequence found so far, update the longest sequence
+                longestSequence = sequence
+            end
+        else
+            -- If the block has a different number than the current sequence, reset the current sequence
+            currentNumber = block.number
+            currentSequenceLength = 1
+            sequence = {block}
+        end
+    end
+    
+    return longestSequence
+end
+
+
+
 
 function playdate.update()
     playdate.graphics.clear() -- Clears the screen, necessary to redraw the sprites
@@ -105,6 +161,7 @@ function playdate.update()
         grid:highlight(cursorRow,cursorCol)
         grid:highlight(cursorRow,cursorCol+1)
     end
+    processSequences()
     playdate.timer.updateTimers()
     grid:draw() -- Draw the entire grid
 end

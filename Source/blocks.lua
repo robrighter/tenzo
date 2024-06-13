@@ -142,7 +142,7 @@ function Grid:removeBlock(row, col)
     local block = self.grid[row][col]
     if block then
         block:remove()
-        self.grid[row][col] = nil
+        self:addBlock(row, col, -1)
     end
 end
 
