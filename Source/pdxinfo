@@ -1,7 +1,7 @@
-name=Lonely Tennis
+name=Tenzo
 author=Rob Righter
-description=A very lonely game of Tennis.
-bundleID=com.robrighter.LonelyTennis
+description=Swap blocks and rotate the board to line up sequences and score big.
+bundleID=com.robrighter.Tenzo
 version=1.0
 buildNumber=100
 imagePath=SystemAssets
