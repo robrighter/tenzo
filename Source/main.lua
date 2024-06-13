@@ -23,9 +23,14 @@ local cursorRow, cursorCol = 1, 1
 local blocks = import("blocks")
 local gridready = false
 local newLineTimerDelay = 20000
+local bongoFont = playdate.graphics.font.new( "fonts/Bongo" )
+local diamondFont = playdate.graphics.font.new( "fonts/diamond_12" )
+local nontendoFont = playdate.graphics.font.new( "fonts/Nontendo-Bold-2x" )
+local nontendoLightFont = playdate.graphics.font.new( "fonts/Nontendo-Light" )
+local nontendoLight2xFont = playdate.graphics.font.new( "fonts/Nontendo-Light-2x" )
 
 
-local grid = blocks.Grid:new(10, 10, 21, 21,170,15) -- Initialize grid with 20 rows and 10 columns, blocks are 32x32 pixels
+local grid = blocks.Grid:new(10, 10, 21, 21,170,15) -- Initialize grid with 10 rows and 10 columns, blocks are 32x32 pixels
 
 -- Add some initial blocks to the grid
 for row = 1, 10 do  -- Start from the second last row to the first
@@ -84,10 +89,12 @@ function processSequences()
     for row = 1, 10 do
         local sequence = getLongestStraightSequenceOfNumbersInRow(row)
         if #sequence >= 3 then
+            --add this sequence to the score
+            score = score + factorial(#sequence)
             for _, block in ipairs(sequence) do
                 grid:highlight(block.row, block.col)
             end
-            playdate.timer.performAfterDelay(700, function()
+            playdate.timer.performAfterDelay(300, function()
                 for _, block in ipairs(sequence) do
                     block:remove()
                 end
@@ -130,11 +137,38 @@ function getLongestStraightSequenceOfNumbersInRow(row)
     return longestSequence
 end
 
+function factorial(n)
+  if n <= 0 then
+    return 1
+  else
+    return n * factorial(n-1)
+  end
+end
 
 
 
 function playdate.update()
     playdate.graphics.clear() -- Clears the screen, necessary to redraw the sprites
+    
+    --Draw the title and the score board
+    playdate.graphics.setFont(bongoFont)
+    playdate.graphics.fillRect(0, 0, screenWidth, scoreBarHeight, 0)
+    playdate.graphics.fillRect(0, screenHeight-150, screenWidth, 150, 0)
+    --reverse the text to white
+    playdate.graphics.setImageDrawMode(playdate.graphics.kDrawModeFillWhite)
+    playdate.graphics.drawText("TENZO", 10, 7)
+    playdate.graphics.setColor(playdate.graphics.kColorWhite)
+    playdate.graphics.fillRect(170,15,212,212)
+    playdate.graphics.setColor(playdate.graphics.kColorBlack)
+    playdate.graphics.setImageDrawMode(playdate.graphics.kDrawModeFillBlack)
+    playdate.graphics.setFont(nontendoLightFont)
+    playdate.graphics.drawText("High Score: " .. highScore, 10, 40)
+    playdate.graphics.drawText("Score: " .. score, 10, 60)
+
+    
+    
+    
+    playdate.graphics.setFont(diamondFont)
     grid:moveBlocksDown() -- Move blocks downward if space is available
     if gridready then
         grid:unhighlight(cursorRow,cursorCol)

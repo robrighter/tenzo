@@ -36,7 +36,7 @@ function Block:new(row, col, number, width, height)
             playdate.graphics.drawRect(x, y, width-1, height-1)
         end
         if not that.blank then
-            playdate.graphics.drawText(tostring(that.number), x + 6, y + 2)    
+            playdate.graphics.drawText(tostring(that.number), x + 7, y + 5)    
         end
         playdate.graphics.setImageDrawMode(playdate.graphics.kDrawModeFillBlack)
     end
