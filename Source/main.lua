@@ -22,28 +22,31 @@ local cursorRow, cursorCol = 1, 1
 -- Import the Block and Matrix classes
 local blocks = import("blocks")
 local gridready = false
-local newLineTimerDelay = 8000
+local newLineTimerDelay = 20000
 
 
-local grid = blocks.Grid:new(10, 10, 21, 21,10,10) -- Initialize grid with 20 rows and 10 columns, blocks are 32x32 pixels
+local grid = blocks.Grid:new(10, 10, 21, 21,170,15) -- Initialize grid with 20 rows and 10 columns, blocks are 32x32 pixels
 
 -- Add some initial blocks to the grid
 for row = 1, 10 do  -- Start from the second last row to the first
     if true then
         for col = 1, 10 do
-            if row < 8 then -- start with just 3 rows
-                grid:addBlock(row, col, -1 ) --blanks
-            else
-                grid:addBlock(row, col, math.random(0,9)) --game blocks
-            end
+            grid:addBlock(row, col, math.random(0,9))    
+            --the following was from a game mode that only had 3 rows of blocks to start
+            --if row < 8 then -- start with just 3 rows
+            --    grid:addBlock(row, col, -1 ) --blanks
+            --else
+            --    grid:addBlock(row, col, math.random(0,9)) --game blocks
+            --end
         end
     end
 end
 
 gridready = true
 
+
+--this function and associated timers are from the game mode that only had 3 rows of blocks to start
 function timerCallback()
-    print("In Timer callback")
     if isTopRowAllBlanks() then
         insertRowAtBottom()
         cursorRow = cursorRow - 1
@@ -53,9 +56,7 @@ function timerCallback()
         print("[TODO] Game Over")
     end
 end
-
-print("Starting Timer")
-playdate.timer.performAfterDelay(newLineTimerDelay, timerCallback)
+--playdate.timer.performAfterDelay(newLineTimerDelay, timerCallback)
 
 function isTopRowAllBlanks()
     for col = 1, 10 do
@@ -83,13 +84,12 @@ function processSequences()
     for row = 1, 10 do
         local sequence = getLongestStraightSequenceOfNumbersInRow(row)
         if #sequence >= 3 then
-            print("Found a sequence of " .. #sequence .. " blocks in row " .. row)
             for _, block in ipairs(sequence) do
                 grid:highlight(block.row, block.col)
             end
             playdate.timer.performAfterDelay(700, function()
                 for _, block in ipairs(sequence) do
-                    grid:removeBlock(block.row, block.col)
+                    block:remove()
                 end
             end)
             
@@ -157,6 +157,8 @@ function playdate.update()
             end
         elseif playdate.buttonJustPressed(playdate.kButtonA) then
             grid:swap(cursorRow,cursorCol,cursorRow,cursorCol+1)
+        elseif playdate.buttonJustPressed(playdate.kButtonB) then
+            grid:rotateRight()
         end
         grid:highlight(cursorRow,cursorCol)
         grid:highlight(cursorRow,cursorCol+1)

@@ -69,7 +69,8 @@ function Block:moveTo(row, col, offsetx, offsety)
 end
 
 function Block:remove()
-    self.sprite:remove()
+    self.number = -1
+    self.blank = true
 end
 
 -- Grid Class
@@ -123,9 +124,11 @@ end
 function Grid:moveBlocksDown()
     for row = self.rows - 1, 1, -1 do  -- Start from the second last row to the first
         for col = 1, self.cols do
-            if self.grid[row][col] and self:isCellEmpty(row + 1, col) then
+            if self.grid[row][col] and not self:isCellEmpty(row,col) and self:isCellEmpty(row + 1, col) then
                 -- Move the block downward
-                self:moveBlock(row, col, row + 1, col)
+                self:swap(row, col, row + 1, col)
+                self:unhighlight(row,col) 
+                self:unhighlight(row+1,col)
             end
         end
     end
@@ -135,14 +138,13 @@ function Grid:isCellEmpty(row, col)
     if row > self.rows or row < 1 or col > self.cols or col < 1 then
         return false -- Outside grid bounds is considered not empty (prevents blocks from moving out of the grid)
     end
-    return self.grid[row][col] == nil
+    return self.grid[row][col].blank
 end
 
 function Grid:removeBlock(row, col)
     local block = self.grid[row][col]
     if block then
         block:remove()
-        self:addBlock(row, col, -1)
     end
 end
 
@@ -161,6 +163,36 @@ function Grid:draw()
     end
 end
 
+function Grid:rotateRight()
+    local newGrid = {}
+    for row = 1, self.cols do
+        newGrid[row] = {}
+        for col = 1, self.rows do
+            newGrid[row][col] = self.grid[self.rows - col + 1][row]
+            if newGrid[row][col] then
+                newGrid[row][col]:moveTo(row, col, self.offsetx, self.offsety)
+            end
+        end
+    end
+    self.grid = newGrid
+    self.rows, self.cols = self.cols, self.rows
+end
+
+function Grid:rotateLeft()
+    local newGrid = {}
+    for row = 1, self.cols do
+        newGrid[row] = {}
+        for col = 1, self.rows do
+            newGrid[row][col] = self.grid[col][self.cols - row + 1]
+            if newGrid[row][col] then
+                newGrid[row][col]:moveTo(row, col, self.offsetx, self.offsety)
+            end
+        end
+    end
+    self.grid = newGrid
+    self.rows, self.cols = self.cols, self.rows
+end
+
 function Grid:moveBlock(fromRow, fromCol, toRow, toCol)
     local block = self.grid[fromRow][fromCol]
     if block and self.grid[toRow][toCol] == nil then
@@ -173,6 +205,7 @@ end
 function Grid:moveBlockForce(fromRow, fromCol, toRow, toCol)
     local block = self.grid[fromRow][fromCol]
     self.grid[toRow][toCol] = block
+    block.highlighted = false
     block:moveTo(toRow, toCol, self.offsetx, self.offsety)
 end
 
