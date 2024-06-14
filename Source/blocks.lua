@@ -1,4 +1,5 @@
 import 'CoreLibs/graphics'
+local gfx = playdate.graphics
 
 -- Block Class
 Block = {}
@@ -22,7 +23,7 @@ function Block:new(row, col, number, width, height)
     self.highlighted = false
 
     -- Create the sprite
-    self.sprite = playdate.graphics.sprite.new()
+    self.sprite = gfx.sprite.new()
     self.sprite:setSize(self.width, self.height)
     self.sprite:setCenter(0.5, 0.5) -- Center the sprite
     self.sprite:moveTo(self.x, self.y)
@@ -30,15 +31,15 @@ function Block:new(row, col, number, width, height)
     local that = self
     function self.sprite:draw(x, y, width, height)
         if that.highlighted then
-            playdate.graphics.fillRect(x, y, width-1, height-1)    
-            playdate.graphics.setImageDrawMode(playdate.graphics.kDrawModeFillWhite)
+            gfx.fillRect(x, y, width-1, height-1)    
+            gfx.setImageDrawMode(gfx.kDrawModeFillWhite)
         else
-            playdate.graphics.drawRect(x, y, width-1, height-1)
+            gfx.drawRect(x, y, width-1, height-1)
         end
         if not that.blank then
-            playdate.graphics.drawText(tostring(that.number), x + 7, y + 5)    
+            gfx.drawText(tostring(that.number), x + 7, y + 5)    
         end
-        playdate.graphics.setImageDrawMode(playdate.graphics.kDrawModeFillBlack)
+        gfx.setImageDrawMode(gfx.kDrawModeFillBlack)
     end
 
     return self
@@ -150,7 +151,7 @@ end
 
 function Grid:draw()
     --draw a rectangle around the grid
-    playdate.graphics.drawRect(self.offsetx, self.offsety, 3+(self.cols * self.blockWidth), 3+(self.rows * self.blockHeight))
+    gfx.drawRect(self.offsetx, self.offsety, 3+(self.cols * self.blockWidth), 3+(self.rows * self.blockHeight))
 
     --draw the blocks
     for row = 1, self.rows do

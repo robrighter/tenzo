@@ -3,7 +3,7 @@
 import 'CoreLibs/graphics.lua'
 import 'CoreLibs/timer.lua'
 
-
+local gfx = playdate.graphics
 local screenWidth, screenHeight = playdate.display.getSize()
 
 local paddleWidth, paddleHeight = 20, 60
@@ -23,11 +23,12 @@ local cursorRow, cursorCol = 1, 1
 local blocks = import("blocks")
 local gridready = false
 local newLineTimerDelay = 20000
-local bongoFont = playdate.graphics.font.new( "fonts/Bongo" )
-local diamondFont = playdate.graphics.font.new( "fonts/diamond_12" )
-local nontendoFont = playdate.graphics.font.new( "fonts/Nontendo-Bold-2x" )
-local nontendoLightFont = playdate.graphics.font.new( "fonts/Nontendo-Light" )
-local nontendoLight2xFont = playdate.graphics.font.new( "fonts/Nontendo-Light-2x" )
+local bongoFont = gfx.font.new( "fonts/Bongo" )
+local diamondFont = gfx.font.new( "fonts/diamond_12" )
+local nontendoFont = gfx.font.new( "fonts/Nontendo-Bold-2x" )
+local nontendoLightFont = gfx.font.new( "fonts/Nontendo-Light" )
+local nontendoLight2xFont = gfx.font.new( "fonts/Nontendo-Light-2x" )
+local isRotating
 
 
 local grid = blocks.Grid:new(10, 10, 21, 21,170,15) -- Initialize grid with 10 rows and 10 columns, blocks are 32x32 pixels
@@ -148,27 +149,27 @@ end
 
 
 function playdate.update()
-    playdate.graphics.clear() -- Clears the screen, necessary to redraw the sprites
+    gfx.clear() -- Clears the screen, necessary to redraw the sprites
     
     --Draw the title and the score board
-    playdate.graphics.setFont(bongoFont)
-    playdate.graphics.fillRect(0, 0, screenWidth, scoreBarHeight, 0)
-    playdate.graphics.fillRect(0, screenHeight-150, screenWidth, 150, 0)
+    gfx.setFont(bongoFont)
+    gfx.fillRect(0, 0, screenWidth, scoreBarHeight, 0)
+    gfx.fillRect(0, screenHeight-150, screenWidth, 150, 0)
     --reverse the text to white
-    playdate.graphics.setImageDrawMode(playdate.graphics.kDrawModeFillWhite)
-    playdate.graphics.drawText("TENZO", 10, 7)
-    playdate.graphics.setColor(playdate.graphics.kColorWhite)
-    playdate.graphics.fillRect(170,15,212,212)
-    playdate.graphics.setColor(playdate.graphics.kColorBlack)
-    playdate.graphics.setImageDrawMode(playdate.graphics.kDrawModeFillBlack)
-    playdate.graphics.setFont(nontendoLightFont)
-    playdate.graphics.drawText("High Score: " .. highScore, 10, 40)
-    playdate.graphics.drawText("Score: " .. score, 10, 60)
+    gfx.setImageDrawMode(gfx.kDrawModeFillWhite)
+    gfx.drawText("TENZO", 10, 7)
+    gfx.setColor(gfx.kColorWhite)
+    gfx.fillRect(170,15,212,212)
+    gfx.setColor(gfx.kColorBlack)
+    gfx.setImageDrawMode(gfx.kDrawModeFillBlack)
+    gfx.setFont(nontendoLightFont)
+    gfx.drawText("High Score: " .. highScore, 10, 40)
+    gfx.drawText("Score: " .. score, 10, 60)
 
     
     
     
-    playdate.graphics.setFont(diamondFont)
+    gfx.setFont(diamondFont)
     grid:moveBlocksDown() -- Move blocks downward if space is available
     if gridready then
         grid:unhighlight(cursorRow,cursorCol)
