@@ -6,13 +6,6 @@ import 'CoreLibs/timer.lua'
 local gfx = playdate.graphics
 local screenWidth, screenHeight = playdate.display.getSize()
 
-local paddleWidth, paddleHeight = 20, 60
-local paddleX, paddleY = 10, (screenHeight - paddleHeight) / 2
-
-local ballSize = 10
-local ballX, ballY = screenWidth - 20, (screenHeight - ballSize) / 2
-local ballSpeedX, ballSpeedY = -5, 5
-local paddleSpeed = 7
 local highScore = playdate.datastore.read("highScore") or 0
 local score = 0
 local gameIsOver = false
@@ -28,7 +21,9 @@ local diamondFont = gfx.font.new( "fonts/diamond_12" )
 local nontendoFont = gfx.font.new( "fonts/Nontendo-Bold-2x" )
 local nontendoLightFont = gfx.font.new( "fonts/Nontendo-Light" )
 local nontendoLight2xFont = gfx.font.new( "fonts/Nontendo-Light-2x" )
-local isRotating
+local isRotating = false
+local rotationImage = nil
+local rotationDirectionRight = false
 
 
 local grid = blocks.Grid:new(10, 10, 21, 21,170,15) -- Initialize grid with 10 rows and 10 columns, blocks are 32x32 pixels
@@ -38,41 +33,35 @@ for row = 1, 10 do  -- Start from the second last row to the first
     if true then
         for col = 1, 10 do
             grid:addBlock(row, col, math.random(0,9))    
-            --the following was from a game mode that only had 3 rows of blocks to start
-            --if row < 8 then -- start with just 3 rows
-            --    grid:addBlock(row, col, -1 ) --blanks
-            --else
-            --    grid:addBlock(row, col, math.random(0,9)) --game blocks
-            --end
         end
     end
 end
 
 gridready = true
 
-
---this function and associated timers are from the game mode that only had 3 rows of blocks to start
-function timerCallback()
-    if isTopRowAllBlanks() then
-        insertRowAtBottom()
-        cursorRow = cursorRow - 1
-        playdate.timer.performAfterDelay(newLineTimerDelay, timerCallback)
+function processRotationAnimation(isRightRotation)
+    isRotating = true
+    rotationDirectionRight = isRightRotation
+    --Make the image context of the grid
+    rotationImage = gfx.image.new(212, 212, gfx.kColorWhite)
+    gfx.pushContext(rotationImage)
+        
+        grid:draw(true)
+    gfx.popContext()
+    
+    if rotationDirectionRight then
+        --set to animate the context image to rotate right
     else
-        --handle game over
-        print("[TODO] Game Over")
+        --set to animate the context image rotate left
     end
-end
---playdate.timer.performAfterDelay(newLineTimerDelay, timerCallback)
-
-function isTopRowAllBlanks()
-    for col = 1, 10 do
-        if grid:getBlockAt(1, col).blank then
-            --all good
+    playdate.timer.performAfterDelay(500, function()
+        isRotating = false
+        if rotationDirectionRight then
+            grid:rotateRight()
         else
-            return false
+            grid:rotateLeft()
         end
-    end
-    return true
+    end)
 end
 
 function insertRowAtBottom()
@@ -159,7 +148,9 @@ function playdate.update()
     gfx.setImageDrawMode(gfx.kDrawModeFillWhite)
     gfx.drawText("TENZO", 10, 7)
     gfx.setColor(gfx.kColorWhite)
-    gfx.fillRect(170,15,212,212)
+    if not isRotating then
+        gfx.fillRect(170,15,212,212)
+    end
     gfx.setColor(gfx.kColorBlack)
     gfx.setImageDrawMode(gfx.kDrawModeFillBlack)
     gfx.setFont(nontendoLightFont)
@@ -193,12 +184,18 @@ function playdate.update()
         elseif playdate.buttonJustPressed(playdate.kButtonA) then
             grid:swap(cursorRow,cursorCol,cursorRow,cursorCol+1)
         elseif playdate.buttonJustPressed(playdate.kButtonB) then
-            grid:rotateRight()
+            processRotationAnimation(true)
         end
         grid:highlight(cursorRow,cursorCol)
         grid:highlight(cursorRow,cursorCol+1)
     end
     processSequences()
     playdate.timer.updateTimers()
-    grid:draw() -- Draw the entire grid
+    if isRotating then
+        --rotate the image of the grid
+        gfx.setImageDrawMode(gfx.kDrawModeCopy)
+        rotationImage:drawRotated(290, 110, 45)
+    else
+        grid:draw() -- Draw the entire grid
+    end
 end

@@ -149,16 +149,22 @@ function Grid:removeBlock(row, col)
     end
 end
 
-function Grid:draw()
+function Grid:draw(ignoreOffset)
+    local offsetx = self.offsetx
+    local offsety = self.offsety
+    if ignoreOffset then
+        offsetx = 0
+        offsety = 0
+    end
     --draw a rectangle around the grid
-    gfx.drawRect(self.offsetx, self.offsety, 3+(self.cols * self.blockWidth), 3+(self.rows * self.blockHeight))
+    gfx.drawRect(offsetx, offsety, 3+(self.cols * self.blockWidth), 3+(self.rows * self.blockHeight))
 
     --draw the blocks
     for row = 1, self.rows do
         for col = 1, self.cols do
             local block = self.grid[row][col]
             if block then
-                block:draw(self.offsetx, self.offsety)
+                block:draw(offsetx, offsety)
             end
         end
     end
