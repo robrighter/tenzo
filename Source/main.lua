@@ -24,6 +24,7 @@ local nontendoLight2xFont = gfx.font.new( "fonts/Nontendo-Light-2x" )
 local isRotating = false
 local rotationImage = nil
 local rotationDirectionRight = false
+local rotationAngle = 0
 
 
 local grid = blocks.Grid:new(10, 10, 21, 21,170,15) -- Initialize grid with 10 rows and 10 columns, blocks are 32x32 pixels
@@ -48,20 +49,6 @@ function processRotationAnimation(isRightRotation)
         
         grid:draw(true)
     gfx.popContext()
-    
-    if rotationDirectionRight then
-        --set to animate the context image to rotate right
-    else
-        --set to animate the context image rotate left
-    end
-    playdate.timer.performAfterDelay(500, function()
-        isRotating = false
-        if rotationDirectionRight then
-            grid:rotateRight()
-        else
-            grid:rotateLeft()
-        end
-    end)
 end
 
 function insertRowAtBottom()
@@ -194,7 +181,21 @@ function playdate.update()
     if isRotating then
         --rotate the image of the grid
         gfx.setImageDrawMode(gfx.kDrawModeCopy)
-        rotationImage:drawRotated(290, 110, 45)
+        rotationImage:drawRotated(280, 120, rotationAngle)
+        if rotationDirectionRight then
+            rotationAngle = rotationAngle + 5
+        else
+            rotationAngle = rotationAngle - 5
+        end
+        if rotationAngle >= 90 or rotationAngle <= -90 then
+            if rotationDirectionRight then
+                grid:rotateRight()
+            else
+                grid:rotateLeft()
+            end
+            isRotating = false
+            rotationAngle = 0
+        end
     else
         grid:draw() -- Draw the entire grid
     end
