@@ -62,9 +62,9 @@ function processRotationAnimation(isRightRotation)
     isRotating = true
     rotationDirectionRight = isRightRotation
     --Make the image context of the grid
+    unhighlightCursor()
     rotationImage = gfx.image.new(212, 212, gfx.kColorWhite)
-    gfx.pushContext(rotationImage)
-        
+    gfx.pushContext(rotationImage) 
         grid:draw(true)
     gfx.popContext()
 end
@@ -143,6 +143,15 @@ function factorial(n)
   end
 end
 
+function unhighlightCursor()
+    grid:unhighlight(cursorRow,cursorCol)
+    grid:unhighlight(cursorRow,cursorCol+1)
+end
+
+function highlightCursor()
+    grid:highlight(cursorRow,cursorCol)
+    grid:highlight(cursorRow,cursorCol+1)
+end
 
 
 function playdate.update()
@@ -171,8 +180,7 @@ function playdate.update()
     gfx.setFont(oklahomaBoldFont)
     grid:moveBlocksDown() -- Move blocks downward if space is available
     if gridready then
-        grid:unhighlight(cursorRow,cursorCol)
-        grid:unhighlight(cursorRow,cursorCol+1)
+        unhighlightCursor()
         if playdate.buttonJustPressed(playdate.kButtonDown) then
             if cursorRow < grid.rows then
                 cursorRow = cursorRow + 1
@@ -201,10 +209,8 @@ function playdate.update()
         elseif crankTicks == -1 then
             processRotationAnimation(false)
         end
-        grid:highlight(cursorRow,cursorCol)
-        grid:highlight(cursorRow,cursorCol+1)
     end
-    processSequences()
+   
     playdate.timer.updateTimers()
     if isRotating then
         --rotate the image of the grid
@@ -225,6 +231,8 @@ function playdate.update()
             rotationAngle = 0
         end
     else
+        processSequences()
+        highlightCursor()
         grid:draw() -- Draw the entire grid
     end
 end

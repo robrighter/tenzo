@@ -72,6 +72,8 @@ end
 function Block:remove()
     self.number = -1
     self.blank = true
+    self.highlighted = false
+    
 end
 
 -- Grid Class
