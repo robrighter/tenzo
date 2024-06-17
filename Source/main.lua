@@ -2,11 +2,16 @@
 
 import 'CoreLibs/graphics.lua'
 import 'CoreLibs/timer.lua'
+import 'CoreLibs/crank'
 
 local gfx = playdate.graphics
 local screenWidth, screenHeight = playdate.display.getSize()
 
-local highScore = playdate.datastore.read("highScore") or 0
+local highScore = 0
+local gameData = playdate.datastore.read()
+if gameData then
+    highScore = gameData.highScore
+end
 local score = 0
 local gameIsOver = false
 local showTitleScreen = true
@@ -21,24 +26,37 @@ local diamondFont = gfx.font.new( "fonts/diamond_12" )
 local nontendoFont = gfx.font.new( "fonts/Nontendo-Bold-2x" )
 local nontendoLightFont = gfx.font.new( "fonts/Nontendo-Light" )
 local nontendoLight2xFont = gfx.font.new( "fonts/Nontendo-Light-2x" )
+local oklahomaBoldFont = gfx.font.new( "fonts/Oklahoma-Bold.fnt" )
 local isRotating = false
 local rotationImage = nil
 local rotationDirectionRight = false
 local rotationAngle = 0
+local ticksPerRevolution = 6
+local grid = blocks.Grid:new(10, 10, 21, 21,170,15)
+local menu = playdate.getSystemMenu()
 
 
-local grid = blocks.Grid:new(10, 10, 21, 21,170,15) -- Initialize grid with 10 rows and 10 columns, blocks are 32x32 pixels
-
--- Add some initial blocks to the grid
-for row = 1, 10 do  -- Start from the second last row to the first
-    if true then
-        for col = 1, 10 do
-            grid:addBlock(row, col, math.random(0,9))    
+function restartGame()
+    print("Restarting Game")
+    saveGameData()
+    gridready = false
+    isRotating = false
+    rotationImage = nil
+    rotationDirectionRight = false
+    score = 0
+    grid = blocks.Grid:new(10, 10, 21, 21,170,15)
+    -- Add some initial blocks to the grid
+    for row = 1, 10 do  -- Start from the second last row to the first
+        if true then
+            for col = 1, 10 do
+                grid:addBlock(row, col, math.random(0,9))    
+            end
         end
     end
+
+    gridready = true
 end
 
-gridready = true
 
 function processRotationAnimation(isRightRotation)
     isRotating = true
@@ -68,6 +86,9 @@ function processSequences()
         if #sequence >= 3 then
             --add this sequence to the score
             score = score + factorial(#sequence)
+            if score > highScore then
+                highScore = score
+            end
             for _, block in ipairs(sequence) do
                 grid:highlight(block.row, block.col)
             end
@@ -147,7 +168,7 @@ function playdate.update()
     
     
     
-    gfx.setFont(diamondFont)
+    gfx.setFont(oklahomaBoldFont)
     grid:moveBlocksDown() -- Move blocks downward if space is available
     if gridready then
         grid:unhighlight(cursorRow,cursorCol)
@@ -172,6 +193,13 @@ function playdate.update()
             grid:swap(cursorRow,cursorCol,cursorRow,cursorCol+1)
         elseif playdate.buttonJustPressed(playdate.kButtonB) then
             processRotationAnimation(true)
+        end
+        --detect cranks
+        local crankTicks = playdate.getCrankTicks(ticksPerRevolution)
+        if crankTicks == 1 then
+            processRotationAnimation(true)
+        elseif crankTicks == -1 then
+            processRotationAnimation(false)
         end
         grid:highlight(cursorRow,cursorCol)
         grid:highlight(cursorRow,cursorCol+1)
@@ -200,3 +228,27 @@ function playdate.update()
         grid:draw() -- Draw the entire grid
     end
 end
+
+function saveGameData()
+    -- Save game data into a table first
+    local gameData = {
+        highScore = highScore
+    }
+    playdate.datastore.write(gameData)
+end
+
+-- Automatically save game data when the player chooses
+-- to exit the game via the System Menu or Menu button
+function playdate.gameWillTerminate()
+    saveGameData()
+end
+
+-- Automatically save game data when the device goes
+-- to low-power sleep mode because of a low battery
+function playdate.gameWillSleep()
+    saveGameData()
+end
+
+--bootstrap the game
+local menuItem, error = menu:addMenuItem("Restart Game", restartGame)
+restartGame()

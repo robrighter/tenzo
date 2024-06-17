@@ -37,7 +37,7 @@ function Block:new(row, col, number, width, height)
             gfx.drawRect(x, y, width-1, height-1)
         end
         if not that.blank then
-            gfx.drawText(tostring(that.number), x + 7, y + 5)    
+            gfx.drawText(tostring(that.number), x + 8, y + 5)    
         end
         gfx.setImageDrawMode(gfx.kDrawModeFillBlack)
     end
