@@ -2,6 +2,6 @@ name=Tenzo
 author=Rob Righter
 description=Swap blocks and rotate the board to line up sequences and score big.
 bundleID=com.robrighter.Tenzo
-version=1.2
+version=1.3
 buildNumber=100
 imagePath=SystemAssets

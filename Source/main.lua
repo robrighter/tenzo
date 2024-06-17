@@ -34,6 +34,7 @@ local rotationAngle = 0
 local ticksPerRevolution = 6
 local grid = blocks.Grid:new(10, 10, 21, 21,170,15)
 local menu = playdate.getSystemMenu()
+local toastMessage = "To play, Line up numbers horizontally in order. Use 'B' to swap adjacent numbers. Use 'A' to swap with the end of the row. Use the crank to rotate the board. Line up 0-9 on one row and score a Tenzo!"
 
 
 function restartGame()
@@ -174,6 +175,12 @@ function playdate.update()
     gfx.drawText("High Score: " .. highScore, 10, 40)
     gfx.drawText("Score: " .. score, 10, 60)
 
+
+    --draw the toast message
+    gfx.setImageDrawMode(gfx.kDrawModeFillWhite)
+    gfx.drawTextInRect(toastMessage, 10,100, 150, 160)
+    gfx.setImageDrawMode(gfx.kDrawModeFillBlack)
+
     
     
     
@@ -198,9 +205,9 @@ function playdate.update()
                 cursorCol = cursorCol + 1
             end
         elseif playdate.buttonJustPressed(playdate.kButtonA) then
-            grid:swap(cursorRow,cursorCol,cursorRow,cursorCol+1)
+            grid:swap(cursorRow,cursorCol,cursorRow,10)
         elseif playdate.buttonJustPressed(playdate.kButtonB) then
-            processRotationAnimation(true)
+            grid:swap(cursorRow,cursorCol,cursorRow,cursorCol+1)
         end
         --detect cranks
         local crankTicks = playdate.getCrankTicks(ticksPerRevolution)
