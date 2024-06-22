@@ -106,6 +106,18 @@ function Grid:addBlock(row, col, number)
     self.grid[row][col] = block
 end
 
+function Grid:countRemainingTiles()
+    local count = 0
+    for row = 1, self.rows do
+        for col = 1, self.cols do
+            if not self.grid[row][col].blank then
+                count = count + 1
+            end
+        end
+    end
+    return count
+end
+
 function Grid:getBlockAt(row, col)
     return self.grid[row][col]
 end

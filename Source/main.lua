@@ -8,9 +8,15 @@ local gfx = playdate.graphics
 local screenWidth, screenHeight = playdate.display.getSize()
 
 local highScore = 0
+local tilesRemaining = 0
+local leastTilesRemaining = 0
 local gameData = playdate.datastore.read()
 if gameData then
     highScore = gameData.highScore
+    leastTilesRemaining = gameData.leastTilesRemaining
+end
+if leastTilesRemaining == nil then
+    leastTilesRemaining = 100
 end
 local score = 0
 local gameIsOver = false
@@ -45,6 +51,7 @@ function restartGame()
     rotationImage = nil
     rotationDirectionRight = false
     score = 0
+    tilesRemaining = 100
     grid = blocks.Grid:new(10, 10, 21, 21,170,15)
     -- Add some initial blocks to the grid
     for row = 1, 10 do  -- Start from the second last row to the first
@@ -157,11 +164,14 @@ end
 
 function playdate.update()
     gfx.clear() -- Clears the screen, necessary to redraw the sprites
-    
+    tilesRemaining = grid:countRemainingTiles()
+    if tilesRemaining < leastTilesRemaining then
+        leastTilesRemaining = tilesRemaining
+    end
     --Draw the title and the score board
     gfx.setFont(bongoFont)
     gfx.fillRect(0, 0, screenWidth, scoreBarHeight, 0)
-    gfx.fillRect(0, screenHeight-150, screenWidth, 150, 0)
+    gfx.fillRect(0, screenHeight-130, screenWidth, 150, 0)
     --reverse the text to white
     gfx.setImageDrawMode(gfx.kDrawModeFillWhite)
     gfx.drawText("TENZO", 10, 7)
@@ -172,18 +182,20 @@ function playdate.update()
     gfx.setColor(gfx.kColorBlack)
     gfx.setImageDrawMode(gfx.kDrawModeFillBlack)
     gfx.setFont(nontendoLightFont)
-    gfx.drawText("High Score: " .. highScore, 10, 40)
-    gfx.drawText("Score: " .. score, 10, 60)
+    gfx.drawText("High Score: " .. highScore, 10, 30)
+    gfx.drawText("Lowest Tiles Remaining: " .. leastTilesRemaining, 10, 50)
+    gfx.drawText("Score: " .. score, 10, 70)
+    gfx.drawText("Tiles Remaining: " .. tilesRemaining, 10, 90)
 
 
     --draw the toast message
     gfx.setImageDrawMode(gfx.kDrawModeFillWhite)
-    gfx.drawTextInRect(toastMessage, 10,100, 150, 160)
+    gfx.drawTextInRect(toastMessage, 10,125, 150, 160)
     gfx.setImageDrawMode(gfx.kDrawModeFillBlack)
 
     
     
-    
+
     gfx.setFont(oklahomaBoldFont)
     grid:moveBlocksDown() -- Move blocks downward if space is available
     if gridready then
@@ -247,7 +259,8 @@ end
 function saveGameData()
     -- Save game data into a table first
     local gameData = {
-        highScore = highScore
+        highScore = highScore,
+        leastTilesRemaining = leastTilesRemaining
     }
     playdate.datastore.write(gameData)
 end
