@@ -143,6 +143,29 @@ function getLongestStraightSequenceOfNumbersInRow(row)
     return longestSequence
 end
 
+function checkForAvailableMoves()
+    for i = 0, 7 do
+        local group = {i, i+1, i+2}
+        local found = {false, false, false}
+        for row = 1, grid.rows do
+            for col = 1, grid.cols do
+                local block = grid:getBlockAt(row, col)
+                if block.number == group[1] then
+                    found[1] = true
+                elseif block.number == group[2] then
+                    found[2] = true
+                elseif block.number == group[3] then
+                    found[3] = true
+                end
+            end
+        end
+        if found[1] and found[2] and found[3] then
+            return true
+        end
+    end
+    return false
+end
+
 function factorial(n)
   if n <= 0 then
     return 1
@@ -182,11 +205,17 @@ function playdate.update()
     gfx.setColor(gfx.kColorBlack)
     gfx.setImageDrawMode(gfx.kDrawModeFillBlack)
     gfx.setFont(nontendoLightFont)
-    gfx.drawText("High Score: " .. highScore, 10, 30)
-    gfx.drawText("Lowest Tiles Remaining: " .. leastTilesRemaining, 10, 50)
-    gfx.drawText("Score: " .. score, 10, 70)
-    gfx.drawText("Tiles Remaining: " .. tilesRemaining, 10, 90)
-
+    if checkForAvailableMoves() == true then
+        gfx.drawText("High Score: " .. highScore, 10, 30)
+        gfx.drawText("Lowest Tiles Remaining: " .. leastTilesRemaining, 10, 50)
+        gfx.drawText("Score: " .. score, 10, 70)
+        gfx.drawText("Tiles Remaining: " .. tilesRemaining, 10, 90)
+    else
+        gfx.drawText("No moves left!", 10, 30)
+        gfx.drawText("Start a new game in the menu.", 10, 50)
+        gfx.drawText("High Score: " .. highScore, 10, 70)
+        gfx.drawText("Score: " .. score, 10, 90)
+    end
 
     --draw the toast message
     gfx.setImageDrawMode(gfx.kDrawModeFillWhite)
